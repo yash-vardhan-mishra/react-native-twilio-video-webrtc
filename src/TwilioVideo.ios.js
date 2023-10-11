@@ -21,6 +21,12 @@ export default class TwilioVideo extends Component {
      */
     onRoomDidConnect: PropTypes.func,
     /**
+     * Called when the room is reconnected
+     *
+     * @param {{roomName, participants}}
+     */
+    onRoomDidReconnect: PropTypes.func,
+    /**
      * Called when the room has disconnected
      *
      * @param {{roomName, error}}
@@ -32,6 +38,12 @@ export default class TwilioVideo extends Component {
      * @param {{roomName, error}}
      */
     onRoomDidFailToConnect: PropTypes.func,
+    /**
+     * Called when room is being reconnected because of error
+     *
+     * @param {{roomName, error}}
+     */
+    onRoomReconnectingWithError: PropTypes.func,
     /**
      * Called when a new participant has connected
      *
@@ -348,6 +360,11 @@ export default class TwilioVideo extends Component {
           this.props.onRoomDidConnect(data);
         }
       }),
+      this._eventEmitter.addListener("roomDidReconnect", (data) => {
+        if (this.props.onRoomDidReconnect) {
+          this.props.onRoomDidReconnect(data);
+        }
+      }),
       this._eventEmitter.addListener("roomDidDisconnect", (data) => {
         if (this.props.onRoomDidDisconnect) {
           this.props.onRoomDidDisconnect(data);
@@ -356,6 +373,11 @@ export default class TwilioVideo extends Component {
       this._eventEmitter.addListener("roomDidFailToConnect", (data) => {
         if (this.props.onRoomDidFailToConnect) {
           this.props.onRoomDidFailToConnect(data);
+        }
+      }),
+      this._eventEmitter.addListener("roomIsReconnectingWithError", (data) => {
+        if (this.props.onRoomReconnectingWithError) {
+          this.props.onRoomReconnectingWithError(data);
         }
       }),
       this._eventEmitter.addListener("roomParticipantDidConnect", (data) => {

@@ -11,8 +11,10 @@
 #import "RCTTWSerializable.h"
 
 static NSString* roomDidConnect               = @"roomDidConnect";
+static NSString* roomDidReconnect             = @"roomDidReconnect";
 static NSString* roomDidDisconnect            = @"roomDidDisconnect";
 static NSString* roomDidFailToConnect         = @"roomDidFailToConnect";
+static NSString* roomIsReconnectingWithError  = @"roomIsReconnectingWithError";
 static NSString* roomParticipantDidConnect    = @"roomParticipantDidConnect";
 static NSString* roomParticipantDidDisconnect = @"roomParticipantDidDisconnect";
 static NSString* roomParticipantIsReconnecting = @"roomParticipantIsReconnecting";
@@ -93,8 +95,10 @@ RCT_EXPORT_MODULE();
 - (NSArray<NSString *> *)supportedEvents {
   return @[
     roomDidConnect,
+    roomDidReconnect,
     roomDidDisconnect,
     roomDidFailToConnect,
+    roomIsReconnectingWithError,
     roomParticipantDidConnect,
     roomParticipantDidDisconnect,
     roomParticipantIsReconnecting,
@@ -554,6 +558,21 @@ RCT_EXPORT_METHOD(disconnect) {
 
 }
 
+- (void)didReconnectToRoom:(TVIRoom *)room {
+  NSMutableArray *participants = [NSMutableArray array];
+
+  for (TVIRemoteParticipant *p in room.remoteParticipants) {
+    p.delegate = self;
+    [participants addObject:[p toJSON]];
+  }
+  self.localParticipant = room.localParticipant;
+  self.localParticipant.delegate = self;
+
+  [participants addObject:[self.localParticipant toJSON]];
+  [self sendEventCheckingListenerWithName:roomDidReconnect body:@{ @"roomName" : room.name , @"roomSid": room.sid, @"participants" : participants, @"localParticipant" : [self.localParticipant toJSON] }];
+
+}
+
 - (void)room:(TVIRoom *)room didDisconnectWithError:(nullable NSError *)error {
   self.localDataTrack = nil;
   self.room = nil;
@@ -577,6 +596,19 @@ RCT_EXPORT_METHOD(disconnect) {
   }
 
   [self sendEventCheckingListenerWithName:roomDidFailToConnect body:body];
+}
+
+- (void)room:(TVIRoom *)room isReconnectingWithError:(nonnull NSError *)error{
+  self.localDataTrack = nil;
+  self.room = nil;
+
+  NSMutableDictionary *body = [@{ @"roomName": room.name, @"roomSid": room.sid } mutableCopy];
+
+  if (error) {
+    [body addEntriesFromDictionary:@{ @"error" : error.localizedDescription }];
+  }
+
+  [self sendEventCheckingListenerWithName:roomIsReconnectingWithError body:body];
 }
 
 
