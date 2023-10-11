@@ -45,6 +45,19 @@ export default class TwilioVideo extends Component {
      */
     onRoomParticipantDidDisconnect: PropTypes.func,
     /**
+     * Called when a participant is reconnecting
+     *
+     * @param {{roomName, participant}}
+     */
+    onRoomParticipantIsReconnecting: PropTypes.func,
+    /**
+    /**
+     * Called when a participant is reconnected
+     *
+     * @param {{roomName, participant}}
+     */
+    onRoomParticipantReconnected: PropTypes.func,
+    /**
      * Called when a new video track has been added
      *
      * @param {{participant, track, enabled}}
@@ -353,6 +366,16 @@ export default class TwilioVideo extends Component {
       this._eventEmitter.addListener("roomParticipantDidDisconnect", (data) => {
         if (this.props.onRoomParticipantDidDisconnect) {
           this.props.onRoomParticipantDidDisconnect(data);
+        }
+      }),
+      this._eventEmitter.addListener("roomParticipantIsReconnecting", (data) => {
+        if (this.props.onRoomParticipantIsReconnecting) {
+          this.props.onRoomParticipantIsReconnecting(data);
+        }
+      }),
+      this._eventEmitter.addListener("roomParticipantReconnected", (data) => {
+        if (this.props.onRoomParticipantReconnected) {
+          this.props.onRoomParticipantReconnected(data);
         }
       }),
       this._eventEmitter.addListener("participantAddedVideoTrack", (data) => {
