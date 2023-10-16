@@ -559,7 +559,17 @@ RCT_EXPORT_METHOD(disconnect) {
 }
 
 - (void)didReconnectToRoom:(TVIRoom *)room {
-  [self sendEventCheckingListenerWithName:roomDidReconnect body:@{ @"roomName" : room.name , @"roomSid": room.sid }];
+  NSMutableArray *participants = [NSMutableArray array];
+
+  for (TVIRemoteParticipant *p in room.remoteParticipants) {
+    p.delegate = self;
+    [participants addObject:[p toJSON]];
+  }
+  self.localParticipant = room.localParticipant;
+  self.localParticipant.delegate = self;
+
+  [participants addObject:[self.localParticipant toJSON]];
+  [self sendEventCheckingListenerWithName:roomDidReconnect body:@{ @"roomName" : room.name , @"roomSid": room.sid, @"participants" : participants, @"localParticipant" : [self.localParticipant toJSON] }];
 }
 
 - (void)room:(TVIRoom *)room didDisconnectWithError:(nullable NSError *)error {
